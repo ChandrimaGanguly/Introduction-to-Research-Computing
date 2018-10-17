@@ -1,6 +1,6 @@
 import simple
 
-def test_addtwo():
+def test_addtwo_outside():
     """
         Test addtwo
     """
