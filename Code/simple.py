@@ -4,13 +4,14 @@ def addtwo(x):
     """
     return x+1
 
+def add02(x):
+    """
+        Add 0.3 to x
+        """
+    return x+0.2
+
 def test_addtwo_inside():
     """
         Test addtwo
         """
     assert( addtwo(3)==5)
-
-
-x = addtwo(5)
-
-print(x)
