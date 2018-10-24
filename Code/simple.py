@@ -15,3 +15,10 @@ def test_addtwo_inside():
         Test addtwo
         """
     assert( addtwo(3)==5)
+
+
+x = 7
+
+y = addtwo(x)
+
+print(y)
