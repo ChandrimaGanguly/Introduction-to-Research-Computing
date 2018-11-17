@@ -1,65 +1,56 @@
-"""
-Code to compute a cumulitive sum using MPI after reacting the problem
-"""
 from mpi4py import MPI
-import numpy as np
-import math
+import random
 
-# initilise
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
-# calculate how many send loops we will need
-# we have assumed that the number or processors is a power of 2
-# otherwise we need to have lots of logic for edge cases
-# in our merge tree
-levels = int(math.log2(size))
+index, edges = [0], []
+for i in range(size):
+    pos = index[-1]
+    connections = random.randint(1,5)
+    index.append(pos+connections)
+    edges1=[]
+    for j in range(connections):
+        x = random.randint(0,size-1)
+        while x==rank or x in edges1:
+            x = random.randint(0,size-1)
+        edges1.append(x)
+        
+    edges += edges1
 
-# set list length
-length = 200
-# divide this by number of processors
-# we have made no allowances for remainder
-# in a prefect world we would keeep track of this
-# and pad our arrays accordingly
-split = length//size
+graph = comm.Create_graph(index[1:], edges)
 
-# create list to recv data from scatter
-list1 = np.empty((split),dtype='int')
+neighs = graph.Get_neighbors(rank)
 
-# create long list on rank 0
+print ("In Graph we assigned processor ",rank, " to have neighbours ", neighs)
+
 if rank==0:
-    listall = np.random.randint(0,100,(length))
-else:
-    listall = None
-    
-if rank==0:
-    print("[{}] My send data is ".format(rank),listall)
+    print ("Graph has dimensions ",graph.dims)
+    print ("Graph has #nodes ",graph.nnodes)
+    print ("Graph has #edges ",graph.nedges)
+    print ("Graph has index ",graph.index)
+    print ("Graph has edges ",graph.edges)
 
-#scatter orginal list   
-comm.Scatter(listall,list1,root=0)
+print ("Processor ",rank," has in degree ",graph.indegree)
+print ("Processor ",rank," has out degree ",graph.outdegree)
+print ("Processor ",rank," has in edges ",graph.inedges)
+print ("Processor ",rank," has out edges ",graph.outedges)
 
-# compute cumulitive sum for our section
-x=0
-for index, item in enumerate(list1):
-     x += item
-     list1[index] = x
+# We should be able to only specify connection to nodes,
+# of which we can have several, on this rank with the following:
 
-# now send cum sum to other ranks.  This is a bit fiddly
-# we first send from 1mod2 to 0mod2 then from
-# 2mod4 to 0mod4  and so on adding the new section on at each setp    
-for i in range(1,levels+1):
-    if rank%2**i == 0:
-        dest = rank + 2**(i-1)
-        comm.send(list1[-1], dest=dest, tag=11)
-    elif rank%2**i == 2**(i-1):
-        src = rank - 2**(i-1)
-        x = comm.recv(source=src, tag=11)
-        list1 = list1+x
+# sources = [rank]
+# connections = random.randint(1,5)
+# degrees = [connections]
+# destinations = []
+# for i in range (connections):
+#     x = random.randint(0,size-1)
+#     while x==rank:
+#         x = random.randint(0,size-1)
+#     destinations.append(x)
+#
+# graph = comm.Create_dist_graph(sources,degrees,destinations)
 
-# gather the cumultive sums back together
-comm.Gather(list1,listall,root=0)
+# But they currently give: NotImplementedError so it doesn't exist for my MPI implementation...
 
-# output result
-if rank==0:
-    print(listall)
