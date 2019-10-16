@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+var1=1
+echo "var1 = $var1"
+
+str1="Hello"
+echo "str1 = $str1"
+
+for i in {1..10}; # {1..10} expands to "1 2 3 4 5 6 7 8 9 10"
+do 
+    echo "List form:    The iteration number is $i"
+done
+
+for (( i = 0; i < 10; i++ )) #C style loop
+do
+    echo "C style form: The iteration number is $i"
+done
+
+i=0
+while [ $i -lt 5 ] #Executes until false
+do
+    echo "while: i is currently $i"
+    i=$[$i+1] #Not the lack of spaces around the brackets. This makes it a not a test expression
+done
+
+i=5
+until [[ $i -eq 10 ]]; #Executes until true
+do
+    echo "until: i is currently $i"
+    i=$((i+1))
+done
+
+num=5
+if [ "$num" -eq 1 ]; then
+    echo "the number is 1"
+elif [ "$num" -gt 2 ]; then
+    echo "the number is greater than 2"
+else
+    echo "The number was not 1 and is not more than 2."
+fi
